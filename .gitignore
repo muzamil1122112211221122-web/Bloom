@@ -1,0 +1,7 @@
+# Large video and zip files exceeding GitHub 100MB limit
+lipstick-story.mp4
+*.zip
+frame by frame pics of video of rose to applyying women/
+/lipstick-*.jpeg*
+.system_generated/
+*.log
