@@ -1,0 +1,2011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLOOM — Haute Parfumerie & Couture Rouge</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200..900;1,9..144,200..900&family=Inter:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet" />
+
+  <!-- GSAP & Lenis CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+
+  <style>
+    /* ==========================================================================
+       1. ROOT DESIGN SYSTEM & COUTURE TOKENS
+       ========================================================================== */
+    :root {
+      --bg-color: #0a0506;
+      --bg-surface: #12070a;
+      --bg-card: rgba(22, 10, 15, 0.72);
+      --text-color: #f5ece6;
+      --text-muted: #bda9a0;
+      --accent-gold: #c9a675;
+      --accent-gold-light: #e6cb9f;
+      --accent-rose: #7a1128;
+      --accent-rose-glow: rgba(122, 17, 40, 0.35);
+      --card-border: rgba(201, 166, 117, 0.18);
+      --card-border-hover: rgba(201, 166, 117, 0.45);
+      --font-display: 'Fraunces', 'Playfair Display', Georgia, serif;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --ease-couture: cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: clip; /* CRITICAL: overflow-x clip ensures sticky works */
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::selection {
+      background: var(--accent-rose);
+      color: #ffffff;
+    }
+
+    /* Ambient Film Grain */
+    .film-grain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.038;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* Preloader */
+    #preloader {
+      position: fixed;
+      inset: 0;
+      background-color: #0a0506;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 1s var(--ease-couture), visibility 1s;
+    }
+    #preloader.loaded {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .loader-brand {
+      font-family: var(--font-display);
+      font-size: 2.8rem;
+      font-style: italic;
+      letter-spacing: 0.25em;
+      color: var(--text-color);
+      margin-bottom: 2.5rem;
+      text-transform: uppercase;
+      text-shadow: 0 0 30px rgba(201, 166, 117, 0.3);
+    }
+    .loader-bar-wrap {
+      width: 240px;
+      height: 1px;
+      background: rgba(245, 236, 230, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+    .loader-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-rose), var(--accent-gold));
+      transition: width 0.15s ease-out;
+    }
+    .loader-text {
+      margin-top: 1.2rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* ==========================================================================
+       2. FIXED NAVIGATION & PROGRESS BAR
+       ========================================================================== */
+    .fixed-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 2.4rem 3.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      pointer-events: none;
+      transition: transform 0.4s ease;
+    }
+    .nav-brand {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 5px;
+      color: var(--text-color);
+      text-decoration: none;
+      text-transform: uppercase;
+      pointer-events: auto;
+      transition: color 0.3s ease, letter-spacing 0.3s ease;
+    }
+    .nav-brand:hover {
+      color: var(--accent-gold);
+      letter-spacing: 6px;
+    }
+    .nav-shop {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 5px;
+      color: var(--text-color);
+      text-decoration: none;
+      text-transform: uppercase;
+      pointer-events: auto;
+      padding: 9px 20px;
+      border: 1px solid rgba(201, 166, 117, 0.3);
+      border-radius: 40px;
+      background: rgba(10, 5, 6, 0.45);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transition: all 0.4s var(--ease-couture);
+    }
+    .nav-shop:hover {
+      background: var(--accent-gold);
+      color: #0a0506;
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 25px rgba(201, 166, 117, 0.4);
+      transform: translateY(-1px);
+    }
+
+    /* Fixed Scroll Progress Bar */
+    .scroll-progress-bar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 2px;
+      height: 100vh;
+      z-index: 99;
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .scroll-progress-fill {
+      width: 100%;
+      height: 0%;
+      background: var(--accent-gold);
+      box-shadow: 0 0 12px rgba(201, 166, 117, 0.7);
+      transform-origin: top;
+    }
+
+    /* ==========================================================================
+       3. HERO SECTION (CANVAS SCROLLER - UNTOUCHED SPEC)
+       ========================================================================== */
+    .hero-container {
+      position: relative;
+      width: 100%;
+      height: 600vh; /* Perfectly balanced cinematic runway */
+      background-color: var(--bg-color);
+      transform: translate3d(0, 0, 0);
+    }
+    .hero-sticky-stage {
+      position: sticky;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+    }
+    #heroCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+    }
+    .hero-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 35%, rgba(10, 5, 6, 0.65) 85%),
+                  linear-gradient(to bottom, rgba(10, 5, 6, 0.4) 0%, transparent 20%, transparent 75%, #0a0506 100%);
+      pointer-events: none;
+    }
+
+    /* Hero Text Overlays (Exact Ranges) */
+    .hero-overlay {
+      position: absolute;
+      color: var(--text-color);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+      text-align: center;
+      width: 100%;
+      padding: 0 2rem;
+      will-change: opacity, transform;
+    }
+
+    /* Range 0.05 - 0.15: BLOOM */
+    .hero-overlay-1 {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-display);
+      font-size: clamp(4.5rem, 11vw, 110px);
+      font-style: italic;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      text-shadow: 0 12px 45px rgba(0, 0, 0, 0.85);
+    }
+
+    /* Range 0.20 - 0.30: A rose, reimagined. */
+    .hero-overlay-2 {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-body);
+      font-size: clamp(1.3rem, 3vw, 26px);
+      font-style: italic;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-shadow: 0 8px 30px rgba(0, 0, 0, 0.85);
+    }
+
+    /* Range 0.40 - 0.50: Petals become pigment. */
+    .hero-overlay-3 {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5.5vw, 60px);
+      font-weight: 300;
+      letter-spacing: 0.04em;
+      text-shadow: 0 12px 40px rgba(0, 0, 0, 0.85);
+    }
+
+    /* Range 0.60 - 0.70: Pigment becomes couture. */
+    .hero-overlay-4 {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5.5vw, 60px);
+      font-weight: 300;
+      letter-spacing: 0.04em;
+      text-shadow: 0 12px 40px rgba(0, 0, 0, 0.85);
+    }
+
+    /* Range 0.80 - 0.90: One shade. Every bloom. */
+    .hero-overlay-5 {
+      top: 10%;
+      left: 8%;
+      width: auto;
+      text-align: left;
+      font-family: var(--font-body);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      font-weight: 400;
+      color: var(--text-color);
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+    }
+
+    .hero-scroll-prompt {
+      position: absolute;
+      bottom: 3.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+      opacity: 0.75;
+      transition: opacity 0.5s ease;
+    }
+    .hero-scroll-prompt span {
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .scroll-line {
+      width: 1px;
+      height: 38px;
+      background: linear-gradient(to bottom, var(--accent-gold), transparent);
+      animation: pulseLine 2.2s infinite ease-in-out;
+    }
+    @keyframes pulseLine {
+      0%, 100% { transform: scaleY(0.4); opacity: 0.3; }
+      50% { transform: scaleY(1); opacity: 1; }
+    }
+
+    /* ==========================================================================
+       4. SECTION 2: STICKY BLOOM-TO-BULLET EXPLAINER (REFINED EDITORIAL)
+       ========================================================================== */
+    .explainer-section {
+      position: relative;
+      width: 100%;
+      background: linear-gradient(180deg, #0a0506 0%, #14070b 35%, #18090e 70%, #0a0506 100%);
+      display: flex;
+      min-height: 400vh;
+    }
+    .explainer-sticky-col {
+      width: 50%;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4.5rem;
+      overflow: hidden;
+    }
+    .explainer-img-frame {
+      position: relative;
+      width: 88%;
+      height: 82%;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 35px 90px rgba(0, 0, 0, 0.85), 0 0 0 1px var(--card-border);
+      background: #000;
+    }
+    .explainer-img-frame::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border: 1px solid rgba(201, 166, 117, 0.25);
+      border-radius: 4px;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .explainer-img-frame::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 65%, rgba(10, 5, 6, 0.7) 100%);
+      z-index: 4;
+      pointer-events: none;
+    }
+    .explainer-sticky-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transform: scale(1.08);
+      filter: saturate(1.05) contrast(1.02);
+      transition: opacity 1s var(--ease-couture), transform 1.4s var(--ease-couture);
+    }
+    .explainer-sticky-img.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Stage indicator pills */
+    .explainer-stage-tracker {
+      position: absolute;
+      bottom: 2.2rem;
+      left: 2.5rem;
+      z-index: 6;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .stage-dot {
+      width: 24px;
+      height: 2px;
+      background: rgba(245, 236, 230, 0.2);
+      transition: all 0.5s var(--ease-couture);
+    }
+    .stage-dot.active {
+      width: 48px;
+      background: var(--accent-gold);
+      box-shadow: 0 0 10px rgba(201, 166, 117, 0.6);
+    }
+
+    .explainer-content-col {
+      width: 50%;
+      position: relative;
+    }
+    .explainer-panel {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4rem 7rem 4rem 4rem;
+      position: relative;
+    }
+    .panel-meta {
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
+      margin-bottom: 1.8rem;
+    }
+    .panel-num {
+      font-size: 11px;
+      letter-spacing: 5px;
+      color: var(--accent-gold);
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+    .panel-line {
+      width: 48px;
+      height: 1px;
+      background: rgba(201, 166, 117, 0.35);
+    }
+    .panel-category {
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.6rem, 4.5vw, 4.2rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--text-color);
+      line-height: 1.1;
+      margin-bottom: 1.2rem;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    .panel-subtitle {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      font-style: italic;
+      color: var(--accent-gold);
+      margin-bottom: 1.8rem;
+      line-height: 1.45;
+      font-weight: 400;
+    }
+    .panel-copy {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.85;
+      max-width: 480px;
+      font-weight: 300;
+    }
+
+    /* ==========================================================================
+       5. SECTION 3: HORIZONTAL CRAFTSMANSHIP RAIL (SEAMLESS RUNWAY)
+       ========================================================================== */
+    .rail-section {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      background-color: var(--bg-color);
+    }
+    .rail-header-sticky {
+      position: absolute;
+      top: 3.5rem;
+      left: 4rem;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .rail-tag {
+      font-size: 10px;
+      letter-spacing: 5px;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+    .rail-title {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-style: italic;
+      color: var(--text-color);
+      font-weight: 300;
+    }
+
+    .rail-track {
+      display: flex;
+      height: 100%;
+      width: 400vw; /* 4 seamless panels */
+      will-change: transform;
+    }
+    .rail-panel {
+      width: 100vw;
+      height: 100vh;
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 5rem 7rem;
+      overflow: hidden;
+    }
+    .rail-video-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.5;
+      filter: saturate(1.15) brightness(0.85);
+      transition: transform 1.4s var(--ease-couture), opacity 0.8s ease;
+    }
+    .rail-panel:hover .rail-video-bg {
+      opacity: 0.65;
+      transform: scale(1.04);
+    }
+    .rail-panel-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 75% center, rgba(10, 5, 6, 0.3) 0%, rgba(10, 5, 6, 0.85) 75%),
+                  linear-gradient(to right, rgba(10, 5, 6, 0.95) 0%, transparent 45%);
+    }
+    .rail-card {
+      position: relative;
+      z-index: 10;
+      max-width: 540px;
+      background: var(--bg-card);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      padding: 3.8rem;
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      box-shadow: 0 35px 80px rgba(0, 0, 0, 0.75);
+      transition: border-color 0.4s ease, transform 0.4s ease;
+    }
+    .rail-card:hover {
+      border-color: var(--card-border-hover);
+      transform: translateY(-4px);
+    }
+    .rail-card-num {
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      margin-bottom: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .rail-card-num::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(201, 166, 117, 0.25);
+    }
+    .rail-card-heading {
+      font-family: var(--font-display);
+      font-size: 2.3rem;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text-color);
+      margin-bottom: 1.2rem;
+      line-height: 1.2;
+    }
+    .rail-card-body {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.85;
+      font-weight: 300;
+    }
+
+    /* ==========================================================================
+       6. SECTION 4: PARALLAX STATEMENT (EDITORIAL MANIFESTO)
+       ========================================================================== */
+    .statement-section {
+      position: relative;
+      width: 100%;
+      min-height: 115vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 9rem 2rem;
+      background-color: var(--bg-color);
+    }
+    .statement-bg-wrap {
+      position: absolute;
+      top: -20%;
+      left: 0;
+      width: 100%;
+      height: 140%;
+      z-index: 1;
+      will-change: transform;
+    }
+    .statement-bg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.38) contrast(1.15) saturate(1.1);
+    }
+    .statement-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(10, 5, 6, 0.45) 0%, #0a0506 85%),
+                  linear-gradient(to bottom, #0a0506 0%, transparent 25%, transparent 75%, #0a0506 100%);
+      z-index: 2;
+    }
+    .statement-content {
+      position: relative;
+      z-index: 5;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+    .statement-badge {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      padding: 9px 26px;
+      border: 1px solid rgba(201, 166, 117, 0.35);
+      border-radius: 40px;
+      margin-bottom: 2.8rem;
+      background: rgba(10, 5, 6, 0.6);
+      backdrop-filter: blur(12px);
+    }
+    .statement-quote {
+      font-family: var(--font-display);
+      font-size: clamp(2.2rem, 4.8vw, 4rem);
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text-color);
+      line-height: 1.32;
+      margin-bottom: 2.2rem;
+      text-shadow: 0 15px 50px rgba(0, 0, 0, 0.95);
+    }
+    .statement-sub {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      font-weight: 300;
+      letter-spacing: 0.04em;
+      max-width: 640px;
+      margin: 0 auto;
+      line-height: 1.8;
+    }
+
+    /* ==========================================================================
+       7. SECTION 5: REVERSE COLUMNS (VERTICAL PARALLAX TILES)
+       ========================================================================== */
+    .reverse-columns-section {
+      position: relative;
+      width: 100%;
+      padding: 9rem 4rem;
+      background: linear-gradient(180deg, #0a0506 0%, #15080c 50%, #0a0506 100%);
+      overflow: hidden;
+    }
+    .reverse-header {
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto 6.5rem auto;
+    }
+    .reverse-header-tag {
+      font-size: 10px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      margin-bottom: 1.2rem;
+    }
+    .reverse-header-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 4.2vw, 3.4rem);
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text-color);
+    }
+
+    .reverse-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      align-items: start;
+    }
+    .reverse-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2.8rem;
+      will-change: transform;
+    }
+    .reverse-card {
+      background: var(--bg-card);
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      transition: transform 0.6s var(--ease-couture), box-shadow 0.6s var(--ease-couture), border-color 0.6s ease;
+    }
+    .reverse-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 35px 80px rgba(0, 0, 0, 0.8), 0 0 25px rgba(201, 166, 117, 0.2);
+      border-color: var(--card-border-hover);
+    }
+    .reverse-card-img-wrap {
+      width: 100%;
+      height: 500px;
+      overflow: hidden;
+      position: relative;
+    }
+    .reverse-card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 1.4s var(--ease-couture);
+    }
+    .reverse-card:hover .reverse-card-img-wrap img {
+      transform: scale(1.08);
+    }
+    .reverse-card-content {
+      padding: 2.5rem;
+    }
+    .reverse-card-tag {
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      margin-bottom: 0.9rem;
+    }
+    .reverse-card-title {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text-color);
+      margin-bottom: 0.9rem;
+    }
+    .reverse-card-copy {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+      font-weight: 300;
+    }
+
+    /* ==========================================================================
+       8. SECTION 6: FINAL LOOK GRID (THE ATELIER COLLECTION)
+       ========================================================================== */
+    .look-grid-section {
+      position: relative;
+      width: 100%;
+      padding: 10rem 4rem;
+      background-color: var(--bg-color);
+    }
+    .look-grid-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      max-width: 1400px;
+      margin: 0 auto 5.5rem auto;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid rgba(201, 166, 117, 0.2);
+    }
+    .look-grid-header-left h3 {
+      font-size: 10px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      margin-bottom: 0.9rem;
+    }
+    .look-grid-header-left h2 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 4.2vw, 3.6rem);
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text-color);
+    }
+    .look-grid-header-right p {
+      font-size: 1rem;
+      color: var(--text-muted);
+      max-width: 400px;
+      font-weight: 300;
+      line-height: 1.7;
+    }
+
+    .look-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .look-card {
+      background: var(--bg-card);
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.5s var(--ease-couture);
+    }
+    .look-card:hover {
+      border-color: var(--accent-gold);
+      transform: translateY(-12px);
+      box-shadow: 0 35px 80px rgba(0, 0, 0, 0.85), 0 0 35px rgba(201, 166, 117, 0.25);
+    }
+    .look-img-wrap {
+      width: 100%;
+      height: 460px;
+      position: relative;
+      overflow: hidden;
+    }
+    .look-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 1.4s var(--ease-couture);
+    }
+    .look-card:hover .look-img-wrap img {
+      transform: scale(1.08);
+    }
+    .look-body {
+      padding: 2.8rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .look-meta {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      margin-bottom: 0.9rem;
+    }
+    .look-title {
+      font-family: var(--font-display);
+      font-size: 1.9rem;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text-color);
+      margin-bottom: 1.1rem;
+    }
+    .look-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+      font-weight: 300;
+      margin-bottom: 2.2rem;
+    }
+    .look-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      text-decoration: none;
+      font-weight: 500;
+      transition: gap 0.3s ease, color 0.3s ease;
+    }
+    .look-link:hover {
+      gap: 18px;
+      color: #ffffff;
+    }
+
+    /* ==========================================================================
+       9. SECTION 7: NEWSLETTER (THE PRIVATE SALON)
+       ========================================================================== */
+    .newsletter-section {
+      position: relative;
+      width: 100%;
+      min-height: 95vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7rem 2rem;
+    }
+    .newsletter-bg-wrap {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+    .newsletter-bg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.24) contrast(1.18) saturate(1.1);
+    }
+    .newsletter-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(10, 5, 6, 0.45) 0%, #0a0506 90%);
+      z-index: 2;
+    }
+    .newsletter-card {
+      position: relative;
+      z-index: 5;
+      max-width: 720px;
+      width: 100%;
+      background: rgba(20, 9, 13, 0.72);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      padding: 5rem 4rem;
+      border: 1px solid rgba(201, 166, 117, 0.28);
+      border-radius: 4px;
+      text-align: center;
+      box-shadow: 0 45px 110px rgba(0, 0, 0, 0.85);
+    }
+    .newsletter-tag {
+      font-size: 10px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      margin-bottom: 1.4rem;
+    }
+    .newsletter-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 4.4vw, 3.4rem);
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text-color);
+      margin-bottom: 1.4rem;
+    }
+    .newsletter-desc {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.85;
+      max-width: 520px;
+      margin: 0 auto 2.8rem auto;
+      font-weight: 300;
+    }
+    .newsletter-form {
+      display: flex;
+      gap: 14px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .newsletter-input {
+      flex: 1;
+      background: rgba(10, 5, 6, 0.65);
+      border: 1px solid rgba(201, 166, 117, 0.35);
+      padding: 18px 22px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      color: var(--text-color);
+      border-radius: 2px;
+      outline: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .newsletter-input:focus {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 20px rgba(201, 166, 117, 0.3);
+    }
+    .newsletter-input::placeholder {
+      color: rgba(245, 236, 230, 0.35);
+      font-weight: 300;
+    }
+    .newsletter-btn {
+      background: var(--accent-gold);
+      color: #0a0506;
+      border: none;
+      padding: 0 32px;
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    .newsletter-btn:hover {
+      background: #ffffff;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.45);
+    }
+    .newsletter-success {
+      display: none;
+      color: var(--accent-gold);
+      font-size: 1.1rem;
+      font-style: italic;
+      font-family: var(--font-serif);
+      margin-top: 1.8rem;
+    }
+
+    /* ==========================================================================
+       10. SECTION 8: MINIMAL FOOTER
+       ========================================================================== */
+    .site-footer {
+      position: relative;
+      width: 100%;
+      background: #060304;
+      padding: 7rem 4rem 3.5rem 4rem;
+      border-top: 1px solid rgba(201, 166, 117, 0.15);
+      overflow: hidden;
+    }
+    .footer-watermark {
+      position: absolute;
+      bottom: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-display);
+      font-size: 20vw;
+      font-weight: 200;
+      letter-spacing: 0.18em;
+      color: rgba(245, 236, 230, 0.018);
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .footer-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      max-width: 1400px;
+      margin: 0 auto 5.5rem auto;
+      position: relative;
+      z-index: 2;
+    }
+    .footer-brand h2 {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-style: italic;
+      letter-spacing: 0.1em;
+      color: var(--text-color);
+      margin-bottom: 0.9rem;
+    }
+    .footer-brand p {
+      font-size: 0.85rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+    }
+    .footer-links-grid {
+      display: flex;
+      gap: 6rem;
+    }
+    .footer-col h4 {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-color);
+      margin-bottom: 1.6rem;
+    }
+    .footer-col ul {
+      list-style: none;
+    }
+    .footer-col li {
+      margin-bottom: 0.9rem;
+    }
+    .footer-col a {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 300;
+      transition: color 0.3s ease;
+    }
+    .footer-col a:hover {
+      color: var(--accent-gold);
+    }
+    .footer-bottom {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding-top: 2.8rem;
+      border-top: 1px solid rgba(245, 236, 230, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: rgba(245, 236, 230, 0.4);
+      letter-spacing: 1px;
+      position: relative;
+      z-index: 2;
+    }
+    .footer-back-to-top {
+      color: var(--accent-gold);
+      text-decoration: none;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      transition: color 0.3s ease;
+    }
+    .footer-back-to-top:hover {
+      color: #ffffff;
+    }
+
+    /* ==========================================================================
+       11. RESPONSIVE BREAKPOINTS
+       ========================================================================== */
+    @media (max-width: 1024px) {
+      .fixed-nav { padding: 1.8rem 2.2rem; }
+      .explainer-section { flex-direction: column; min-height: auto; }
+      .explainer-sticky-col { width: 100%; height: 55vh; position: relative; padding: 2rem; }
+      .explainer-content-col { width: 100%; }
+      .explainer-panel { height: auto; padding: 4.5rem 2.5rem; min-height: 65vh; }
+      .reverse-grid { grid-template-columns: 1fr; gap: 4rem; }
+      .look-grid { grid-template-columns: 1fr; gap: 3.5rem; }
+      .look-grid-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+      .rail-track { width: 400vw; }
+      .footer-main { flex-direction: column; gap: 3.5rem; }
+      .footer-links-grid { flex-wrap: wrap; gap: 3.5rem; }
+    }
+    @media (max-width: 640px) {
+      .hero-overlay-1 { font-size: 3.6rem; }
+      .hero-overlay-3, .hero-overlay-4 { font-size: 2.1rem; }
+      .hero-overlay-5 { top: 12%; left: 6%; }
+      .rail-panel { padding: 3rem 1.5rem; }
+      .rail-card { padding: 2.2rem 1.8rem; }
+      .reverse-columns-section, .look-grid-section { padding: 6rem 1.5rem; }
+      .newsletter-form { flex-direction: column; }
+      .newsletter-btn { padding: 18px; }
+      .footer-bottom { flex-direction: column; gap: 1.2rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Film Grain Overlay -->
+  <div class="film-grain"></div>
+
+  <!-- Preloader -->
+  <div id="preloader">
+    <div class="loader-brand">BLOOM</div>
+    <div class="loader-bar-wrap">
+      <div class="loader-bar" id="loaderBar"></div>
+    </div>
+    <div class="loader-text" id="loaderText">Awakening Rose Pigments · 0%</div>
+  </div>
+
+  <!-- Fixed Navigation -->
+  <nav class="fixed-nav">
+    <a href="#" class="nav-brand">BLOOM</a>
+    <a href="#newsletter" class="nav-shop">SHOP NOW</a>
+  </nav>
+
+  <!-- Fixed Scroll Progress Bar -->
+  <div class="scroll-progress-bar">
+    <div class="scroll-progress-fill" id="scrollProgressFill"></div>
+  </div>
+
+  <!-- ==========================================================================
+       SECTION 1: HERO (PINNED CANVAS SEQUENCE)
+       ========================================================================== -->
+  <section class="hero-container" id="hero">
+    <div class="hero-sticky-stage" id="heroStage">
+      <!-- Scrubbing Canvas -->
+      <canvas id="heroCanvas"></canvas>
+      <div class="hero-vignette"></div>
+
+      <!-- Fallback / Poster reference video element -->
+      <video id="lipstickStoryVideo" src="lipstick-story.mp4" playsinline muted style="display:none;"></video>
+
+      <!-- Exact Text Overlays specified in prompt -->
+      <!-- Range 0.05 - 0.15: BLOOM -->
+      <div class="hero-overlay hero-overlay-1" id="heroText1">
+        BLOOM
+      </div>
+
+      <!-- Range 0.20 - 0.30: A rose, reimagined. -->
+      <div class="hero-overlay hero-overlay-2" id="heroText2">
+        A rose, reimagined.
+      </div>
+
+      <!-- Range 0.40 - 0.50: Petals become pigment. -->
+      <div class="hero-overlay hero-overlay-3" id="heroText3">
+        Petals become pigment.
+      </div>
+
+      <!-- Range 0.60 - 0.70: Pigment becomes couture. -->
+      <div class="hero-overlay hero-overlay-4" id="heroText4">
+        Pigment becomes couture.
+      </div>
+
+      <!-- Range 0.80 - 0.90: One shade. Every bloom. -->
+      <div class="hero-overlay hero-overlay-5" id="heroText5">
+        ONE SHADE. EVERY BLOOM.
+      </div>
+
+      <!-- Scroll Prompt -->
+      <div class="hero-scroll-prompt" id="heroScrollPrompt">
+        <span>SCROLL TO AWAKEN</span>
+        <div class="scroll-line"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 2: STICKY BLOOM-TO-BULLET EXPLAINER
+       ========================================================================== -->
+  <section class="explainer-section" id="explainer">
+    <!-- Left 50% Sticky Image Container -->
+    <div class="explainer-sticky-col">
+      <div class="explainer-img-frame">
+        <img class="explainer-sticky-img active" id="stickyImg1" src="/assets/lipstick-01-rose-small-bud-BB5JReWz.jpeg" alt="The Bloom - Living Rose Bud" />
+        <img class="explainer-sticky-img" id="stickyImg2" src="/assets/lipstick-05-rose-full-bloom-BBz4ndML.jpeg" alt="The Release - Rose Full Bloom" />
+        <img class="explainer-sticky-img" id="stickyImg3" src="/assets/lipstick-07-pigment-mold-BEGvO1BK.jpeg" alt="The Form - Pigment Mold" />
+        <img class="explainer-sticky-img" id="stickyImg4" src="/assets/lipstick-08-finished-standing-CmIetUB4.jpeg" alt="The Finish - Sculpted Bullet" />
+      
+        <!-- Stage tracker dots -->
+        <div class="explainer-stage-tracker">
+          <div class="stage-dot active" id="dot1"></div>
+          <div class="stage-dot" id="dot2"></div>
+          <div class="stage-dot" id="dot3"></div>
+          <div class="stage-dot" id="dot4"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right 50% 4x 100vh Panels -->
+    <div class="explainer-content-col">
+      <!-- Panel 1 -->
+      <div class="explainer-panel" data-panel="1">
+        <div class="panel-meta">
+          <span class="panel-num">01 / 04</span>
+          <span class="panel-line"></span>
+          <span class="panel-category">The Genesis</span>
+        </div>
+        <h2 class="panel-title">THE BLOOM</h2>
+        <h3 class="panel-subtitle">A single rose, grown for one purpose.</h3>
+        <p class="panel-copy">
+          Harvested at dawn in the historic valleys of Grasse when dew-laden petals hold their deepest velvet luster. Each blossom is selected by hand, yielding a chromatic purity impossible to fabricate through synthetic chemistry.
+        </p>
+      </div>
+
+      <!-- Panel 2 -->
+      <div class="explainer-panel" data-panel="2">
+        <div class="panel-meta">
+          <span class="panel-num">02 / 04</span>
+          <span class="panel-line"></span>
+          <span class="panel-category">Extraction</span>
+        </div>
+        <h2 class="panel-title">THE RELEASE</h2>
+        <h3 class="panel-subtitle">Petals fall and dissolve into liquid pigment.</h3>
+        <p class="panel-copy">
+          Under gentle cellular cold-pressing, delicate botanical membranes yield their sacred crimson essence. The living pigment is suspended in bio-compatible squalane, preserving the raw vitality and luminous warmth of petals in mid-flight.
+        </p>
+      </div>
+
+      <!-- Panel 3 -->
+      <div class="explainer-panel" data-panel="3">
+        <div class="panel-meta">
+          <span class="panel-num">03 / 04</span>
+          <span class="panel-line"></span>
+          <span class="panel-category">Architecture</span>
+        </div>
+        <h2 class="panel-title">THE FORM</h2>
+        <h3 class="panel-subtitle">Pigment sets into a precise matte bullet.</h3>
+        <p class="panel-copy">
+          Poured into bespoke cryogenic molds with microscopic architectural precision. As the formulation crystallizes, it captures an ultra-fine matte silhouette engineered to glide with zero resistance and embrace the lip's natural contour.
+        </p>
+      </div>
+
+      <!-- Panel 4 -->
+      <div class="explainer-panel" data-panel="4">
+        <div class="panel-meta">
+          <span class="panel-num">04 / 04</span>
+          <span class="panel-line"></span>
+          <span class="panel-category">Application</span>
+        </div>
+        <h2 class="panel-title">THE FINISH</h2>
+        <h3 class="panel-subtitle">One continuous motion from pickup to application.</h3>
+        <p class="panel-copy">
+          A sensorial transformation upon first touch. The bullet yields a weightless veil of multidimensional color that breathes with your lips throughout the day—unfading, unyielding, unmistakably couture.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 3: HORIZONTAL CRAFTSMANSHIP RAIL
+       ========================================================================== -->
+  <section class="rail-section" id="craftsmanshipRail">
+    <div class="rail-header-sticky">
+      <div class="rail-tag">ATELIER ARCHIVES</div>
+      <h2 class="rail-title">The Craftsmanship Rail</h2>
+    </div>
+
+    <div class="rail-track" id="railTrack">
+      <!-- Panel 1: Video v03 -->
+      <div class="rail-panel">
+        <video class="rail-video-bg" src="/assets/lipstick-v03-petals-release-BeNcs3DQ.mp4" autoplay muted loop playsinline></video>
+        <div class="rail-panel-overlay"></div>
+        <div class="rail-card">
+          <div class="rail-card-num">CRAFT 01 / CELLULAR EXTRACTION</div>
+          <h3 class="rail-card-heading">The Sacred Dissolution</h3>
+          <p class="rail-card-body">
+            Centrifugal separation unlocks the botanical heart without heat, retaining the authentic luminescence and moisture-binding lipids of French Grand Cru roses.
+          </p>
+        </div>
+      </div>
+
+      <!-- Panel 2: Video v04 -->
+      <div class="rail-panel">
+        <video class="rail-video-bg" src="/assets/lipstick-v04-pigment-forms-BmpuHHJU.mp4" autoplay muted loop playsinline></video>
+        <div class="rail-panel-overlay"></div>
+        <div class="rail-card">
+          <div class="rail-card-num">CRAFT 02 / MOLECULAR INFUSION</div>
+          <h3 class="rail-card-heading">Fluid Metamorphosis</h3>
+          <p class="rail-card-body">
+            Micro-milled carmine particles blend seamlessly into an emulsion of rare camellia oil and whipped peptide waxes for unmatched depth and featherweight application.
+          </p>
+        </div>
+      </div>
+
+      <!-- Panel 3: Video v05 -->
+      <div class="rail-panel">
+        <video class="rail-video-bg" src="/assets/lipstick-v05-lipstick-sets-l7hQSCQT.mp4" autoplay muted loop playsinline></video>
+        <div class="rail-panel-overlay"></div>
+        <div class="rail-card">
+          <div class="rail-card-num">CRAFT 03 / CRYOGENIC CAST</div>
+          <h3 class="rail-card-heading">The Sculpted Bullet</h3>
+          <p class="rail-card-body">
+            Tempered at precisely twelve degrees below zero to lock the signature faceted teardrop tip, engineered for razor-sharp lip contouring without a liner.
+          </p>
+        </div>
+      </div>
+
+      <!-- Panel 4: Video v06 -->
+      <div class="rail-panel">
+        <video class="rail-video-bg" src="/assets/lipstick-v06-hand-picks-up-CkVSpjWT.mp4" autoplay muted loop playsinline></video>
+        <div class="rail-panel-overlay"></div>
+        <div class="rail-card">
+          <div class="rail-card-num">CRAFT 04 / SENSORIAL CASING</div>
+          <h3 class="rail-card-heading">Tactile Architecture</h3>
+          <p class="rail-card-body">
+            Weighted fluted brass casing with a signature magnetic closure tuned to the acoustic resonance of luxury jewelry vaults.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 4: PARALLAX STATEMENT
+       ========================================================================== -->
+  <section class="statement-section" id="statement">
+    <div class="statement-bg-wrap" id="statementBgWrap">
+      <img class="statement-bg" src="/assets/lipstick-08-finished-standing-CmIetUB4.jpeg" alt="Bloom Lipstick Sculpture" />
+    </div>
+    <div class="statement-vignette"></div>
+    <div class="statement-content">
+      <div class="statement-badge">COUTURE MANIFESTO</div>
+      <blockquote class="statement-quote">
+        “Couture is not merely worn — it is awakened. Born of living botanical velvet, crafted for eternal presence.”
+      </blockquote>
+      <p class="statement-sub">
+        The universal scarlet formulation conceived to synchronize with every complexion under morning radiance or midnight candlelight.
+      </p>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 5: REVERSE COLUMNS
+       ========================================================================== -->
+  <section class="reverse-columns-section" id="reverseColumns">
+    <div class="reverse-header">
+      <div class="reverse-header-tag">THE TRILOGY OF MATTE PERFECTION</div>
+      <h2 class="reverse-header-title">Botanical Alchemy in Motion</h2>
+    </div>
+
+    <div class="reverse-grid">
+      <!-- Column 1: Col-Up -->
+      <div class="reverse-col col-up" id="colUp1">
+        <div class="reverse-card">
+          <div class="reverse-card-img-wrap">
+            <img src="/assets/lipstick-06-petals-falling-DvOx96Co.jpeg" alt="Petals Falling" />
+          </div>
+          <div class="reverse-card-content">
+            <div class="reverse-card-tag">ACT I / THE CASCADE</div>
+            <h3 class="reverse-card-title">Botanical Suspension</h3>
+            <p class="reverse-card-copy">
+              Thousands of living petals released in slow descent, yielding concentrated anthocyanins that bestow living warmth to every swipe.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 2: Col-Down -->
+      <div class="reverse-col col-down" id="colDown">
+        <div class="reverse-card">
+          <div class="reverse-card-img-wrap">
+            <img src="/assets/lipstick-07-pigment-mold-BEGvO1BK.jpeg" alt="Pigment Mold" />
+          </div>
+          <div class="reverse-card-content">
+            <div class="reverse-card-tag">ACT II / THE CRUCIBLE</div>
+            <h3 class="reverse-card-title">Precision Setting</h3>
+            <p class="reverse-card-copy">
+              Poured into hand-polished molds where molecular tension aligns pigment crystals into an ultra-diffusive matte film.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 3: Col-Up -->
+      <div class="reverse-col col-up" id="colUp2">
+        <div class="reverse-card">
+          <div class="reverse-card-img-wrap">
+            <img src="/assets/lipstick-09-hand-picking-up-D4AY2ugL.jpeg" alt="Hand Picking Up" />
+          </div>
+          <div class="reverse-card-content">
+            <div class="reverse-card-tag">ACT III / THE EMBRACE</div>
+            <h3 class="reverse-card-title">Ergonomic Elevation</h3>
+            <p class="reverse-card-copy">
+              Calibrated to 68 grams of balanced inertia, creating an unmistakable tactile ritual from first touch to final contour.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 6: FINAL LOOK GRID
+       ========================================================================== -->
+  <section class="look-grid-section" id="lookGrid">
+    <div class="look-grid-header">
+      <div class="look-grid-header-left">
+        <h3>THE ATELIER COLLECTION</h3>
+        <h2>Three Elements of Ritual</h2>
+      </div>
+      <div class="look-grid-header-right">
+        <p>A beauty brand film translated into physical luxury objects. Each gesture refined to pure poetry.</p>
+      </div>
+    </div>
+
+    <div class="look-grid">
+      <!-- Card 1: THE BULLET -->
+      <div class="look-card">
+        <div class="look-img-wrap">
+          <img src="/assets/lipstick-08-finished-standing-CmIetUB4.jpeg" alt="The Bullet Object" />
+        </div>
+        <div class="look-body">
+          <div>
+            <div class="look-meta">OBJECT 01</div>
+            <h3 class="look-title">THE BULLET</h3>
+            <p class="look-desc">
+              Machined from solid fluted brass with a monolithic midnight finish. The signature faceted teardrop bullet delivers immediate saturated impact in a single effortless stroke.
+            </p>
+          </div>
+          <a href="#newsletter" class="look-link">Acquire Object <span>&rarr;</span></a>
+        </div>
+      </div>
+
+      <!-- Card 2: THE PICKUP -->
+      <div class="look-card">
+        <div class="look-img-wrap">
+          <img src="/assets/lipstick-09-hand-picking-up-D4AY2ugL.jpeg" alt="The Pickup Gesture" />
+        </div>
+        <div class="look-body">
+          <div>
+            <div class="look-meta">OBJECT 02</div>
+            <h3 class="look-title">THE PICKUP</h3>
+            <p class="look-desc">
+              A bespoke magnetic locking mechanism tuned to a quiet acoustic hum. Designed with balanced center-of-gravity for intimate fingertip control and effortless grace.
+            </p>
+          </div>
+          <a href="#newsletter" class="look-link">Experience Ritual <span>&rarr;</span></a>
+        </div>
+      </div>
+
+      <!-- Card 3: THE FINISH -->
+      <div class="look-card">
+        <div class="look-img-wrap">
+          <img src="/assets/lipstick-10-woman-applying-front-BxMk6hTL.jpeg" alt="The Finish Applied" />
+        </div>
+        <div class="look-body">
+          <div>
+            <div class="look-meta">OBJECT 03</div>
+            <h3 class="look-title">THE FINISH</h3>
+            <p class="look-desc">
+              An intuitive color-adapting chromatic formula that mirrors the velvet sheen of fresh rose petals. Breathable, non-drying, and enduring throughout 16 hours of presence.
+            </p>
+          </div>
+          <a href="#newsletter" class="look-link">View Campaign <span>&rarr;</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 7: NEWSLETTER (THE PRIVATE SALON)
+       ========================================================================== -->
+  <section class="newsletter-section" id="newsletter">
+    <div class="newsletter-bg-wrap">
+      <img class="newsletter-bg" src="/assets/lipstick-10-woman-applying-front-BxMk6hTL.jpeg" alt="Bloom Campaign Woman" />
+    </div>
+    <div class="newsletter-overlay"></div>
+    <div class="newsletter-card">
+      <div class="newsletter-tag">PRIVATE INVITATION</div>
+      <h2 class="newsletter-title">The Salon of Private Blooms</h2>
+      <p class="newsletter-desc">
+        Join our private circle for access to limited harvest vintages, bespoke monogram engraving, and seasonal couture releases.
+      </p>
+      <form class="newsletter-form" id="newsletterForm">
+        <input type="email" class="newsletter-input" placeholder="Enter your email address" required />
+        <button type="submit" class="newsletter-btn">REQUEST ACCESS</button>
+      </form>
+      <div class="newsletter-success" id="newsletterSuccess">
+        Thank you. Your invitation to the private salon has been reserved.
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 8: MINIMAL FOOTER
+       ========================================================================== -->
+  <footer class="site-footer">
+    <div class="footer-watermark">BLOOM</div>
+    <div class="footer-main">
+      <div class="footer-brand">
+        <h2>BLOOM</h2>
+        <p>Haute Parfumerie & Couture Rouge</p>
+      </div>
+
+      <div class="footer-links-grid">
+        <div class="footer-col">
+          <h4>Atelier</h4>
+          <ul>
+            <li><a href="#hero">The Story</a></li>
+            <li><a href="#explainer">The Extraction</a></li>
+            <li><a href="#craftsmanshipRail">Craftsmanship</a></li>
+            <li><a href="#lookGrid">The Objects</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Maison</h4>
+          <ul>
+            <li><a href="#">Paris Flagship</a></li>
+            <li><a href="#">Grasse Laboratories</a></li>
+            <li><a href="#">Bespoke Formulation</a></li>
+            <li><a href="#">Sustainability Charter</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Client Care</h4>
+          <ul>
+            <li><a href="#">Private Concierge</a></li>
+            <li><a href="#">Complimentary Engraving</a></li>
+            <li><a href="#">Shipping & Returns</a></li>
+            <li><a href="#">Legal & Privacy</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>&copy; 2026 BLOOM MAISON DE BEAUTÉ. ALL RIGHTS RESERVED.</div>
+      <div>PARIS · GRASSE · NEW YORK · TOKYO</div>
+      <a href="#" class="footer-back-to-top" id="backToTop">BACK TO TOP &uarr;</a>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       JAVASCRIPT: GSAP, LENIS, CANVAS SCROLLER, AND MOTION CHOREOGRAPHY
+       ========================================================================== -->
+  <script>
+    (function () {
+      // Register GSAP plugins
+      gsap.registerPlugin(ScrollTrigger);
+
+      /* --------------------------------------------------------------------------
+         1. LENIS SMOOTH SCROLL INITIALIZATION (OPTIMIZED FOR NO LAG & UNIFORM SPEED)
+         -------------------------------------------------------------------------- */
+      const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        orientation: 'vertical',
+        gestureOrientation: 'vertical',
+        smoothWheel: true,
+        wheelMultiplier: 0.85, // Balanced, luxurious scrolling across all sections
+        touchMultiplier: 1.5,
+        infinite: false
+      });
+
+      lenis.on('scroll', ScrollTrigger.update);
+
+      gsap.ticker.add((time) => {
+        lenis.raf(time * 1000);
+      });
+
+      // Back to top click handler
+      document.getElementById('backToTop').addEventListener('click', (e) => {
+        e.preventDefault();
+        lenis.scrollTo(0, { duration: 1.8 });
+      });
+
+      /* --------------------------------------------------------------------------
+         2. HERO CANVAS & 373 FRAMES SCRUBBING (HIGH-PERFORMANCE ZERO-LAG SYNC)
+         -------------------------------------------------------------------------- */
+      const TOTAL_FRAMES = 373;
+      const frames = []; // Array of Image objects (named frames as required)
+      const canvas = document.getElementById('heroCanvas');
+      const ctx = canvas.getContext('2d', { alpha: false }); // alpha false boosts canvas draw speed
+      const heroContainer = document.getElementById('hero');
+      const loaderBar = document.getElementById('loaderBar');
+      const loaderText = document.getElementById('loaderText');
+      const preloader = document.getElementById('preloader');
+      const scrollProgressFill = document.getElementById('scrollProgressFill');
+
+      // Hero overlay elements
+      const heroText1 = document.getElementById('heroText1');
+      const heroText2 = document.getElementById('heroText2');
+      const heroText3 = document.getElementById('heroText3');
+      const heroText4 = document.getElementById('heroText4');
+      const heroText5 = document.getElementById('heroText5');
+      const heroScrollPrompt = document.getElementById('heroScrollPrompt');
+
+      let loadedFramesCount = 0;
+      let currentFrameIndex = 0;
+
+      // Handle Resize & Retina Canvas
+      function resizeCanvas() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(window.innerWidth * dpr);
+        canvas.height = Math.floor(window.innerHeight * dpr);
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        ctx.scale(dpr, dpr);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'medium';
+        drawFrame(currentFrameIndex);
+      }
+      window.addEventListener('resize', resizeCanvas);
+
+      // Draw specific frame maintaining aspect-ratio cover
+      function drawFrame(index) {
+        const img = frames[index];
+        if (!img || !img.complete || img.naturalWidth === 0) return;
+
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        const canvasRatio = w / h;
+
+        let renderW, renderH, renderX, renderY;
+        if (canvasRatio > imgRatio) {
+          renderW = w;
+          renderH = w / imgRatio;
+          renderX = 0;
+          renderY = (h - renderH) / 2;
+        } else {
+          renderH = h;
+          renderW = h * imgRatio;
+          renderY = 0;
+          renderX = (w - renderW) / 2;
+        }
+
+        ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, renderX, renderY, renderW, renderH);
+      }
+
+      // Preload 373 frames
+      for (let i = 1; i <= TOTAL_FRAMES; i++) {
+        const img = new Image();
+        const paddedNum = String(i).padStart(4, '0');
+        img.src = `frames/frame_${paddedNum}.jpg`;
+
+        img.onload = () => {
+          loadedFramesCount++;
+          const percent = Math.round((loadedFramesCount / TOTAL_FRAMES) * 100);
+          if (loaderBar) loaderBar.style.width = percent + '%';
+          if (loaderText) loaderText.textContent = `Awakening Rose Pigments · ${percent}%`;
+
+          // Draw the very first frame immediately
+          if (loadedFramesCount === 1) {
+            resizeCanvas();
+          }
+
+          if (loadedFramesCount === TOTAL_FRAMES) {
+            setTimeout(() => {
+              if (preloader) preloader.classList.add('loaded');
+              resizeCanvas();
+              ScrollTrigger.refresh();
+            }, 250);
+          }
+        };
+
+        img.onerror = () => {
+          loadedFramesCount++;
+          if (loadedFramesCount === TOTAL_FRAMES) {
+            setTimeout(() => {
+              if (preloader) preloader.classList.add('loaded');
+              resizeCanvas();
+              ScrollTrigger.refresh();
+            }, 250);
+          }
+        };
+
+        frames.push(img);
+      }
+
+      // Fallback timeout for preloader
+      setTimeout(() => {
+        if (preloader && !preloader.classList.contains('loaded')) {
+          preloader.classList.add('loaded');
+          resizeCanvas();
+          ScrollTrigger.refresh();
+        }
+      }, 3000);
+
+      // Hero Scroll Animation using getBoundingClientRect
+      function updateHero() {
+        const rect = heroContainer.getBoundingClientRect();
+        const totalDist = rect.height - window.innerHeight;
+        let progress = 0;
+
+        if (totalDist > 0) {
+          progress = Math.max(0, Math.min(1, -rect.top / totalDist));
+        }
+
+        // Only draw when hero is in or near viewport
+        if (rect.bottom > -100 && rect.top < window.innerHeight + 100) {
+          const targetIndex = Math.min(
+            TOTAL_FRAMES - 1,
+            Math.max(0, Math.round(progress * (TOTAL_FRAMES - 1)))
+          );
+
+          if (targetIndex !== currentFrameIndex) {
+            currentFrameIndex = targetIndex;
+            drawFrame(currentFrameIndex);
+          }
+
+          // Exact Overlay Fade Ranges
+          function getRangeOpacity(p, start, end, peakStart, peakEnd) {
+            if (p < start || p > end) return 0;
+            if (p >= peakStart && p <= peakEnd) return 1;
+            if (p < peakStart) return (p - start) / (peakStart - start);
+            if (p > peakEnd) return 1 - (p - peakEnd) / (end - peakEnd);
+            return 0;
+          }
+
+          // progress 0.05 - 0.15: BLOOM
+          const op1 = getRangeOpacity(progress, 0.04, 0.16, 0.06, 0.14);
+          heroText1.style.opacity = op1;
+          heroText1.style.transform = `translate(-50%, calc(-50% + ${(1 - op1) * 16}px))`;
+
+          // progress 0.20 - 0.30: A rose, reimagined.
+          const op2 = getRangeOpacity(progress, 0.19, 0.31, 0.21, 0.29);
+          heroText2.style.opacity = op2;
+          heroText2.style.transform = `translate(-50%, calc(-50% + ${(1 - op2) * 16}px))`;
+
+          // progress 0.40 - 0.50: Petals become pigment.
+          const op3 = getRangeOpacity(progress, 0.39, 0.51, 0.41, 0.49);
+          heroText3.style.opacity = op3;
+          heroText3.style.transform = `translate(-50%, calc(-50% + ${(1 - op3) * 16}px))`;
+
+          // progress 0.60 - 0.70: Pigment becomes couture.
+          const op4 = getRangeOpacity(progress, 0.59, 0.71, 0.61, 0.69);
+          heroText4.style.opacity = op4;
+          heroText4.style.transform = `translate(-50%, calc(-50% + ${(1 - op4) * 16}px))`;
+
+          // progress 0.80 - 0.90: One shade. Every bloom.
+          const op5 = getRangeOpacity(progress, 0.79, 0.91, 0.81, 0.89);
+          heroText5.style.opacity = op5;
+
+          // Hide prompt after small scroll
+          if (heroScrollPrompt) {
+            heroScrollPrompt.style.opacity = progress > 0.03 ? 0 : 0.75;
+          }
+        }
+
+        // Global Page Scroll Progress Bar (0 to 100vh)
+        const totalPageScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const pageProgress = totalPageScroll > 0 ? window.scrollY / totalPageScroll : 0;
+        if (scrollProgressFill) {
+          scrollProgressFill.style.height = `${Math.min(100, Math.max(0, pageProgress * 100))}%`;
+        }
+      }
+
+      // Sync hero directly with Lenis scroll
+      lenis.on('scroll', updateHero);
+      window.addEventListener('scroll', updateHero, { passive: true });
+
+      // Video Performance Optimization: Only play background loop videos when rail section is visible
+      const railEl = document.getElementById('craftsmanshipRail');
+      const railVideos = document.querySelectorAll('.rail-video-bg');
+      if (railEl && railVideos.length) {
+        const railObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              railVideos.forEach(v => { v.play().catch(() => {}); });
+            } else {
+              railVideos.forEach(v => { v.pause(); });
+            }
+          });
+        }, { threshold: 0.05 });
+        railObserver.observe(railEl);
+      }
+
+      /* --------------------------------------------------------------------------
+         3. SECTION 2: STICKY BLOOM-TO-BULLET EXPLAINER
+         -------------------------------------------------------------------------- */
+      const panelImages = [
+        document.getElementById('stickyImg1'),
+        document.getElementById('stickyImg2'),
+        document.getElementById('stickyImg3'),
+        document.getElementById('stickyImg4')
+      ];
+
+      const stageDots = [
+        document.getElementById('dot1'),
+        document.getElementById('dot2'),
+        document.getElementById('dot3'),
+        document.getElementById('dot4')
+      ];
+
+      function setActivePanelImage(index) {
+        panelImages.forEach((img, i) => {
+          if (img) {
+            if (i === index) {
+              img.classList.add('active');
+            } else {
+              img.classList.remove('active');
+            }
+          }
+        });
+
+        stageDots.forEach((dot, i) => {
+          if (dot) {
+            if (i === index) {
+              dot.classList.add('active');
+            } else {
+              dot.classList.remove('active');
+            }
+          }
+        });
+      }
+
+      // IntersectionObserver for Explainer Panels
+      const explainerPanels = document.querySelectorAll('.explainer-panel');
+      const panelObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const panelIndex = parseInt(entry.target.getAttribute('data-panel'), 10) - 1;
+              if (panelIndex >= 0 && panelIndex < panelImages.length) {
+                setActivePanelImage(panelIndex);
+              }
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+
+      explainerPanels.forEach((panel) => panelObserver.observe(panel));
+
+      /* --------------------------------------------------------------------------
+         4. SECTION 3: HORIZONTAL CRAFTSMANSHIP RAIL (GSAP PINNED)
+         -------------------------------------------------------------------------- */
+      const railSection = document.getElementById('craftsmanshipRail');
+      const railTrack = document.getElementById('railTrack');
+
+      if (railSection && railTrack) {
+        gsap.to(railTrack, {
+          x: () => -(railTrack.scrollWidth - window.innerWidth),
+          ease: 'none',
+          scrollTrigger: {
+            trigger: railSection,
+            pin: true,
+            scrub: 1,
+            start: 'top top',
+            end: () => `+=${railTrack.scrollWidth - window.innerWidth}`,
+            invalidateOnRefresh: true
+          }
+        });
+      }
+
+      /* --------------------------------------------------------------------------
+         5. SECTION 4: PARALLAX STATEMENT
+         -------------------------------------------------------------------------- */
+      const statementBgWrap = document.getElementById('statementBgWrap');
+      const statementSection = document.getElementById('statement');
+
+      if (statementBgWrap && statementSection) {
+        gsap.to(statementBgWrap, {
+          yPercent: 20,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: statementSection,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true
+          }
+        });
+      }
+
+      /* --------------------------------------------------------------------------
+         6. SECTION 5: REVERSE COLUMNS VERTICAL PARALLAX
+         -------------------------------------------------------------------------- */
+      const reverseSection = document.getElementById('reverseColumns');
+      const colUp1 = document.getElementById('colUp1');
+      const colDown = document.getElementById('colDown');
+      const colUp2 = document.getElementById('colUp2');
+
+      if (reverseSection) {
+        if (colUp1) {
+          gsap.to(colUp1, {
+            yPercent: -20,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: reverseSection,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true
+            }
+          });
+        }
+        if (colDown) {
+          gsap.to(colDown, {
+            yPercent: 20,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: reverseSection,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true
+            }
+          });
+        }
+        if (colUp2) {
+          gsap.to(colUp2, {
+            yPercent: -20,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: reverseSection,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true
+            }
+          });
+        }
+      }
+
+      /* --------------------------------------------------------------------------
+         7. NEWSLETTER FORM HANDLER
+         -------------------------------------------------------------------------- */
+      const newsletterForm = document.getElementById('newsletterForm');
+      const newsletterSuccess = document.getElementById('newsletterSuccess');
+      if (newsletterForm && newsletterSuccess) {
+        newsletterForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          newsletterForm.style.display = 'none';
+          newsletterSuccess.style.display = 'block';
+        });
+      }
+
+      /* --------------------------------------------------------------------------
+         8. REFRESH SCROLLTRIGGER ON LOAD
+         -------------------------------------------------------------------------- */
+      window.addEventListener('load', () => {
+        resizeCanvas();
+        ScrollTrigger.refresh();
+      });
+
+      // End script with ScrollTrigger.refresh()
+      ScrollTrigger.refresh();
+    })();
+  </script>
+</body>
+</html>
