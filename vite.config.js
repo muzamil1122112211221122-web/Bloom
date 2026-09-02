@@ -2,6 +2,7 @@ import { defineConfig } from "vite"
 
 export default defineConfig({
   server: {
-    allowedHosts: ["sb-31ibae47u22n.vercel.run"],
+    // Vercel Sandbox assigns a new sb-*.vercel.run hostname per preview.
+    allowedHosts: true,
   },
 })
